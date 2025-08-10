@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Git pre-push hook: run tests before pushing
+
+echo "Running test suite..."
+pytest --maxfail=1 --disable-warnings -q
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+  echo "Tests failed. Aborting push."
+  exit 1
+fi
+exit 0
