@@ -128,3 +128,31 @@ class VoteSerializer(serializers.ModelSerializer):
                 {'non_field_errors': ['You have already voted on this poll']}
             )
         return attrs
+
+
+class BookmarkSerializer(serializers.ModelSerializer):
+    poll_title = serializers.ReadOnlyField(source='poll.title')
+    
+    class Meta:
+        model = Bookmark
+        fields = ['id', 'poll', 'poll_title', 'created_at']
+        read_only_fields = ['created_at']
+    
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if Bookmark.objects.filter(user=request.user, poll=attrs['poll']).exists():
+            raise serializers.ValidationError("Poll already bookmarked")
+        return attrs
+
+
+class PollShareSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PollShare
+        fields = ['id', 'poll', 'platform', 'shared_at', 
+                 'referral_code', 'clicks', 'conversions']
+        read_only_fields = ['shared_at', 'clicks', 'conversions', 'referral_code']
+    
+    def create(self, validated_data):
+        # Generate a unique referral code
+        validated_data['referral_code'] = uuid.uuid4().hex[:10]
+        return super().create(validated_data)
