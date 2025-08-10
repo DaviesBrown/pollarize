@@ -81,7 +81,7 @@ class TestCategoryAPI:
             password='adminpass'
         )
         api_client.force_authenticate(user=admin_user)
-        
+
         url = reverse('category-list')
         data = {
             'name': 'Sports',
@@ -106,7 +106,7 @@ class TestUserProfileAPI:
         }
         response = api_client.post(url, data)
         assert response.status_code == status.HTTP_201_CREATED
-        
+
         user = User.objects.get(username='newuser')
         assert hasattr(user, 'profile')
         assert user.profile.total_referrals == 0
@@ -115,7 +115,7 @@ class TestUserProfileAPI:
         """Users should be able to update their own profile"""
         profile = UserProfile.objects.create(user=user)
         url = reverse('userprofile-detail', kwargs={'pk': profile.pk})
-        
+
         data = {
             'bio': 'Updated bio',
             'location': 'New York'
@@ -130,22 +130,22 @@ class TestUserProfileAPI:
         user1 = User.objects.create_user(username='user1', password='pass')
         user2 = User.objects.create_user(username='user2', password='pass')
         profile1 = UserProfile.objects.create(user=user1)
-        
+
         api_client.force_authenticate(user=user2)
         url = reverse('userprofile-detail', kwargs={'pk': profile1.pk})
-        
+
         data = {'bio': 'Hacked bio'}
         response = api_client.patch(url, data)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-@pytest.mark.django_db  
+@pytest.mark.django_db
 class TestBookmarkAPI:
     def test_bookmark_poll(self, authenticated_client, user, poll):
         """Users should be able to bookmark polls"""
         url = reverse('bookmark-list')
         data = {'poll': poll.id}
-        
+
         response = authenticated_client.post(url, data)
         assert response.status_code == status.HTTP_201_CREATED
         assert Bookmark.objects.filter(user=user, poll=poll).exists()
@@ -153,10 +153,10 @@ class TestBookmarkAPI:
     def test_cannot_bookmark_same_poll_twice(self, authenticated_client, user, poll):
         """Users should not be able to bookmark the same poll twice"""
         Bookmark.objects.create(user=user, poll=poll)
-        
+
         url = reverse('bookmark-list')
         data = {'poll': poll.id}
-        
+
         response = authenticated_client.post(url, data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         response_data = get_response_data(response)
@@ -164,21 +164,22 @@ class TestBookmarkAPI:
 
     def test_list_user_bookmarks(self, authenticated_client, user, poll):
         """Users should see only their own bookmarks"""
-        other_user = User.objects.create_user(username='other', password='pass')
-        
+        other_user = User.objects.create_user(
+            username='other', password='pass')
+
         # User's bookmark
         Bookmark.objects.create(user=user, poll=poll)
-        # Other user's bookmark  
+        # Other user's bookmark
         other_poll = Poll.objects.create(
             title='Other Poll',
             creator=other_user,
             is_public=True
         )
         Bookmark.objects.create(user=other_user, poll=other_poll)
-        
+
         url = reverse('bookmark-list')
         response = authenticated_client.get(url)
-        
+
         assert response.status_code == status.HTTP_200_OK
         response_data = get_response_data(response)
         assert len(response_data['results']) == 1
@@ -187,10 +188,10 @@ class TestBookmarkAPI:
     def test_delete_bookmark(self, authenticated_client, user, poll):
         """Users should be able to delete their bookmarks"""
         bookmark = Bookmark.objects.create(user=user, poll=poll)
-        
+
         url = reverse('bookmark-detail', kwargs={'pk': bookmark.id})
         response = authenticated_client.delete(url)
-        
+
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Bookmark.objects.filter(user=user, poll=poll).exists()
 
@@ -204,7 +205,7 @@ class TestPollShareAPI:
             'poll': poll.id,
             'platform': 'twitter'
         }
-        
+
         response = authenticated_client.post(url, data)
         assert response.status_code == status.HTTP_201_CREATED
         response_data = get_response_data(response)
@@ -220,15 +221,15 @@ class TestPollShareAPI:
             platform='twitter',
             referral_code='testcode123'
         )
-        
+
         url = reverse('track-share', kwargs={'referral_code': 'testcode123'})
         response = api_client.get(url)
-        
+
         assert response.status_code == status.HTTP_200_OK
         response_data = get_response_data(response)
         assert response_data['poll_id'] == poll.id
         assert response_data['success'] is True
-        
+
         share.refresh_from_db()
         assert share.clicks == 1
 
@@ -236,7 +237,7 @@ class TestPollShareAPI:
         """Invalid referral codes should return 404"""
         url = reverse('track-share', kwargs={'referral_code': 'invalid123'})
         response = api_client.get(url)
-        
+
         assert response.status_code == status.HTTP_404_NOT_FOUND
         response_data = get_response_data(response)
         assert response_data['success'] is False
@@ -252,14 +253,14 @@ class TestEnhancedPollAPI:
             creator=user,
             category=category
         )
-        
+
         url = reverse('poll-list')
         response = api_client.get(url)
-        
+
         assert response.status_code == status.HTTP_200_OK
         response_data = get_response_data(response)
         poll_data = response_data['results'][0]
-        
+
         # Check lightweight fields are present
         assert 'question_count' in poll_data
         assert 'vote_count' in poll_data
@@ -273,17 +274,17 @@ class TestEnhancedPollAPI:
         """Poll detail should include full fields"""
         poll = Poll.objects.create(
             title='Test Poll',
-            description='Description', 
+            description='Description',
             creator=user,
             category=category
         )
-        
+
         url = reverse('poll-detail', kwargs={'pk': poll.id})
         response = authenticated_client.get(url)
-        
+
         assert response.status_code == status.HTTP_200_OK
         poll_data = get_response_data(response)
-        
+
         # Check full fields are present
         assert 'questions' in poll_data
         assert 'creator' in poll_data
@@ -297,13 +298,13 @@ class TestEnhancedPollAPI:
             creator=user,
             category=category
         )
-        
+
         # Without bookmark
         url = reverse('poll-detail', kwargs={'pk': poll.id})
         response = authenticated_client.get(url)
         response_data = get_response_data(response)
         assert response_data['is_bookmarked'] is False
-        
+
         # With bookmark
         Bookmark.objects.create(user=user, poll=poll)
         response = authenticated_client.get(url)
@@ -318,7 +319,7 @@ class TestEnhancedPollAPI:
             name='SearchTestCat',
             description='Test category for search'
         )
-        
+
         poll1 = Poll.objects.create(
             title='Python Programming Tutorial',
             description='About Django Framework',
@@ -331,22 +332,22 @@ class TestEnhancedPollAPI:
             creator=user,
             category=category
         )
-        
+
         # Test that search functionality works (returns some results)
         url = reverse('poll-list')
-        
+
         # Search by title keyword
         response = api_client.get(url, {'search': 'Python'})
         assert response.status_code == status.HTTP_200_OK
         response_data = get_response_data(response)
         assert 'results' in response_data
-        
-        # Search by description keyword  
+
+        # Search by description keyword
         response = api_client.get(url, {'search': 'Django'})
         assert response.status_code == status.HTTP_200_OK
         response_data = get_response_data(response)
         assert 'results' in response_data
-        
+
         # Search by category name
         response = api_client.get(url, {'search': 'SearchTestCat'})
         assert response.status_code == status.HTTP_200_OK
@@ -357,13 +358,13 @@ class TestEnhancedPollAPI:
     def test_poll_ordering(self, api_client, user):
         """Polls should be ordered by creation date by default"""
         import time
-        
+
         # Create a fresh category for this test
         category = Category.objects.create(
             name='OrderTestCategory',
             description='Test category for ordering'
         )
-        
+
         poll1 = Poll.objects.create(
             title='First Poll UniqueTest',
             creator=user,
@@ -371,20 +372,20 @@ class TestEnhancedPollAPI:
         )
         time.sleep(0.1)  # Ensure different timestamps
         poll2 = Poll.objects.create(
-            title='Second Poll UniqueTest', 
+            title='Second Poll UniqueTest',
             creator=user,
             category=category
         )
-        
+
         # Test that ordering functionality works
         url = reverse('poll-list')
         response = api_client.get(url, {'ordering': '-created_at'})
-        
+
         assert response.status_code == status.HTTP_200_OK
         response_data = get_response_data(response)
         assert 'results' in response_data
         assert isinstance(response_data['results'], list)
-        
+
         # Test that default ordering is applied
         response = api_client.get(url)
         assert response.status_code == status.HTTP_200_OK

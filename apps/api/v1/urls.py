@@ -32,7 +32,8 @@ urlpatterns = [
     path('users/me/', UserProfileView.as_view(), name='user-profile'),
 
     path('shares/', PollShareView.as_view(), name='poll-share'),
-    path('shares/<str:referral_code>/track/', TrackShareClickView.as_view(), name='track-share'),
+    path('shares/<str:referral_code>/track/',
+         TrackShareClickView.as_view(), name='track-share'),
 
     path('', include(router.urls)),
     path('votes/', VoteView.as_view(), name='vote-create'),

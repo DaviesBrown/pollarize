@@ -32,11 +32,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    
+
     class Meta:
         model = UserProfile
         fields = ['id', 'user', 'bio', 'avatar', 'location', 'social_links',
-                 'total_referrals', 'referral_earnings']
+                  'total_referrals', 'referral_earnings']
         read_only_fields = ['total_referrals', 'referral_earnings']
 
 

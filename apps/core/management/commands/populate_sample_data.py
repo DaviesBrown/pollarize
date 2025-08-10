@@ -57,7 +57,7 @@ class Command(BaseCommand):
             },
             {
                 'username': 'bob_sports',
-                'email': 'bob@example.com', 
+                'email': 'bob@example.com',
                 'password': 'demo123',
                 'profile': {
                     'bio': 'Sports analyst and fantasy league expert',
@@ -127,7 +127,8 @@ class Command(BaseCommand):
                 location='Server Room'
             )
             self.stdout.write(
-                self.style.SUCCESS('Created admin user (username: admin, password: admin123)')
+                self.style.SUCCESS(
+                    'Created admin user (username: admin, password: admin123)')
             )
 
         self.stdout.write(

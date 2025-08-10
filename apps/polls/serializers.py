@@ -32,17 +32,18 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class PollListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
-    question_count = serializers.IntegerField(source='questions.count', read_only=True)
+    question_count = serializers.IntegerField(
+        source='questions.count', read_only=True)
     vote_count = serializers.SerializerMethodField()
     creator_username = serializers.ReadOnlyField(source='creator.username')
     category_name = serializers.ReadOnlyField(source='category.name')
-    
+
     class Meta:
         model = Poll
-        fields = ['id', 'title', 'description', 'creator_username', 
-                 'is_active', 'expires_at', 'is_public', 'created_at',
-                 'question_count', 'vote_count', 'category_name']
-    
+        fields = ['id', 'title', 'description', 'creator_username',
+                  'is_active', 'expires_at', 'is_public', 'created_at',
+                  'question_count', 'vote_count', 'category_name']
+
     def get_vote_count(self, obj):
         return Choice.objects.filter(question__poll=obj).aggregate(
             total_votes=Sum('vote_count'))['total_votes'] or 0
@@ -54,13 +55,13 @@ class PollDetailSerializer(serializers.ModelSerializer):
     creator = UserSerializer(read_only=True)
     is_bookmarked = serializers.SerializerMethodField()
     category_name = serializers.ReadOnlyField(source='category.name')
-    
+
     class Meta:
         model = Poll
         fields = ['id', 'title', 'description', 'creator', 'is_active',
-                 'expires_at', 'is_public', 'created_at', 'questions',
-                 'allows_revote', 'category', 'category_name', 'is_bookmarked']
-    
+                  'expires_at', 'is_public', 'created_at', 'questions',
+                  'allows_revote', 'category', 'category_name', 'is_bookmarked']
+
     def get_is_bookmarked(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
@@ -132,12 +133,12 @@ class VoteSerializer(serializers.ModelSerializer):
 
 class BookmarkSerializer(serializers.ModelSerializer):
     poll_title = serializers.ReadOnlyField(source='poll.title')
-    
+
     class Meta:
         model = Bookmark
         fields = ['id', 'poll', 'poll_title', 'created_at']
         read_only_fields = ['created_at']
-    
+
     def validate(self, attrs):
         request = self.context.get('request')
         if Bookmark.objects.filter(user=request.user, poll=attrs['poll']).exists():
@@ -148,10 +149,11 @@ class BookmarkSerializer(serializers.ModelSerializer):
 class PollShareSerializer(serializers.ModelSerializer):
     class Meta:
         model = PollShare
-        fields = ['id', 'poll', 'platform', 'shared_at', 
-                 'referral_code', 'clicks', 'conversions']
-        read_only_fields = ['shared_at', 'clicks', 'conversions', 'referral_code']
-    
+        fields = ['id', 'poll', 'platform', 'shared_at',
+                  'referral_code', 'clicks', 'conversions']
+        read_only_fields = ['shared_at', 'clicks',
+                            'conversions', 'referral_code']
+
     def create(self, validated_data):
         # Generate a unique referral code
         validated_data['referral_code'] = uuid.uuid4().hex[:10]

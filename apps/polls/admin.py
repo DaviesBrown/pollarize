@@ -17,7 +17,8 @@ class QuestionInline(admin.StackedInline):
 class PollAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'creator', 'category', 'is_public',
                     'is_active', 'allows_revote', 'created_at')
-    list_filter = ('is_public', 'is_active', 'allows_revote', 'category', 'created_at')
+    list_filter = ('is_public', 'is_active',
+                   'allows_revote', 'category', 'created_at')
     search_fields = ('title', 'description', 'creator__username')
     inlines = [QuestionInline]
     readonly_fields = ('created_at',)
@@ -63,11 +64,12 @@ class BookmarkAdmin(admin.ModelAdmin):
 
 @admin.register(PollShare)
 class PollShareAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'poll', 'platform', 'referral_code', 'clicks', 'shared_at')
+    list_display = ('id', 'user', 'poll', 'platform',
+                    'referral_code', 'clicks', 'shared_at')
     list_filter = ('platform', 'shared_at')
     search_fields = ('user__username', 'poll__title', 'referral_code')
     readonly_fields = ('referral_code', 'shared_at')
-    
+
     def get_readonly_fields(self, request, obj=None):
         if obj:  # editing an existing object
             return self.readonly_fields + ('clicks', 'conversions')

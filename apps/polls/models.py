@@ -7,7 +7,7 @@ from django.db.models import Sum
 class PollManager(models.Manager):
     def active_public(self):
         return self.filter(is_active=True, is_public=True)
-        
+
     def with_vote_counts(self):
         return self.annotate(
             total_votes=Sum('questions__choices__vote_count')

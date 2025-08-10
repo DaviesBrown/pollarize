@@ -113,10 +113,10 @@ class VoteView(generics.CreateAPIView):
 class BookmarkViewSet(viewsets.ModelViewSet):
     serializer_class = BookmarkSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
         return Bookmark.objects.filter(user=self.request.user).select_related('poll')
-    
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -124,7 +124,7 @@ class BookmarkViewSet(viewsets.ModelViewSet):
 class PollShareView(generics.CreateAPIView):
     serializer_class = PollShareSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def perform_create(self, serializer):
         serializer.save(
             user=self.request.user,
@@ -134,7 +134,7 @@ class PollShareView(generics.CreateAPIView):
 
 class TrackShareClickView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
-    
+
     def get(self, request, *args, **kwargs):
         referral_code = self.kwargs.get('referral_code')
         try:

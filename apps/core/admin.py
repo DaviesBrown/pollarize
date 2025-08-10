@@ -31,7 +31,9 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'location', 'total_referrals', 'referral_earnings')
+    list_display = ('id', 'user', 'location',
+                    'total_referrals', 'referral_earnings')
     search_fields = ('user__username', 'user__email', 'bio', 'location')
     list_filter = ('total_referrals', 'created_at')
-    readonly_fields = ('total_referrals', 'referral_earnings', 'created_at', 'updated_at')
+    readonly_fields = ('total_referrals', 'referral_earnings',
+                       'created_at', 'updated_at')
