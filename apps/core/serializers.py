@@ -9,7 +9,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'subscription_tier', 'is_premium')
+        fields = ('id', 'username', 'email', 'password',
+                  'subscription_tier', 'is_premium')
         read_only_fields = ('subscription_tier', 'is_premium')
 
     def create(self, validated_data):

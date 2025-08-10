@@ -15,7 +15,8 @@ class QuestionInline(admin.StackedInline):
 
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'creator', 'is_public', 'is_active', 'created_at')
+    list_display = ('id', 'title', 'creator', 'is_public',
+                    'is_active', 'created_at')
     list_filter = ('is_public', 'is_active', 'created_at')
     search_fields = ('title', 'description')
     inlines = [QuestionInline]

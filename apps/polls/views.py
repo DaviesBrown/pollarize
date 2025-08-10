@@ -19,7 +19,8 @@ def invalidate_poll_cache(poll_id: int | None = None):
 class PollViewSet(viewsets.ModelViewSet):
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsCreatorOrReadOnly]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, IsCreatorOrReadOnly]
 
     def get_queryset(self):
         queryset = (
@@ -86,6 +87,7 @@ class VoteView(generics.CreateAPIView):
 
         vote = serializer.save(ip_address=ip_address)
         VoteSession.objects.create(poll=poll, ip_address=ip_address)
-        Choice.objects.filter(pk=choice.pk).update(vote_count=F('vote_count') + 1)
+        Choice.objects.filter(pk=choice.pk).update(
+            vote_count=F('vote_count') + 1)
         invalidate_poll_cache(poll.id)
         return vote
