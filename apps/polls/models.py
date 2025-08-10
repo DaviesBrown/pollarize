@@ -27,6 +27,11 @@ class Poll(models.Model):
     allows_revote = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Payment fields
+    vote_price = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0.00)
+    is_paid = models.BooleanField(default=False)
+
     objects = PollManager()
 
     class Meta:
@@ -34,6 +39,7 @@ class Poll(models.Model):
             models.Index(fields=['is_active', 'is_public']),
             models.Index(fields=['creator', 'created_at']),
             models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['is_paid', 'vote_price']),
         ]
         ordering = ['-created_at']
 
@@ -74,12 +80,17 @@ class VoteSession(models.Model):
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, related_name='vote_sessions')
     ip_address = models.GenericIPAddressField()
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name='vote_sessions')
+    votes_available = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('poll', 'ip_address')
         indexes = [
             models.Index(fields=['poll', 'ip_address']),
+            models.Index(fields=['user', 'poll']),
         ]
 
 

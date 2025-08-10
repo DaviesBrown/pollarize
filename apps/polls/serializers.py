@@ -60,7 +60,8 @@ class PollDetailSerializer(serializers.ModelSerializer):
         model = Poll
         fields = ['id', 'title', 'description', 'creator', 'is_active',
                   'expires_at', 'is_public', 'created_at', 'questions',
-                  'allows_revote', 'category', 'category_name', 'is_bookmarked']
+                  'allows_revote', 'category', 'category_name', 'is_bookmarked',
+                  'is_paid', 'vote_price']
 
     def get_is_bookmarked(self, obj):
         request = self.context.get('request')
@@ -87,6 +88,8 @@ class PollSerializer(serializers.ModelSerializer):
             'allows_revote',
             'created_at',
             'questions',
+            'is_paid',
+            'vote_price',
         ]
 
     def create(self, validated_data):
