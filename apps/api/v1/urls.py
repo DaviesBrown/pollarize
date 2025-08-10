@@ -29,9 +29,10 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='logout'),
 
     path('users/me/', UserProfileView.as_view(), name='user-profile'),
-    
+
     # Payment webhook
-    path('webhook/paystack/', PaystackWebhookView.as_view(), name='paystack-webhook'),
+    path('webhook/paystack/', PaystackWebhookView.as_view(),
+         name='paystack-webhook'),
 
     path('', include(router.urls)),
     path('votes/', VoteView.as_view(), name='vote-create'),

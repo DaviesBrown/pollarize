@@ -10,10 +10,12 @@ class PaymentAdmin(admin.ModelAdmin):
         'status', 'provider', 'created_at', 'completed_at'
     ]
     list_filter = ['status', 'provider', 'currency', 'created_at']
-    search_fields = ['user__username', 'user__email', 'poll__title', 'provider_reference']
-    readonly_fields = ['id', 'provider_reference', 'provider_metadata', 'created_at', 'updated_at']
+    search_fields = ['user__username', 'user__email',
+                     'poll__title', 'provider_reference']
+    readonly_fields = ['id', 'provider_reference',
+                       'provider_metadata', 'created_at', 'updated_at']
     raw_id_fields = ['user', 'poll', 'referred_by']
-    
+
     fieldsets = (
         ('Basic Information', {
             'fields': ('id', 'user', 'poll', 'amount', 'currency', 'votes_purchased')
@@ -28,11 +30,11 @@ class PaymentAdmin(admin.ModelAdmin):
             'fields': ('referred_by',)
         }),
     )
-    
+
     def poll_title(self, obj):
         return obj.poll.title
     poll_title.short_description = 'Poll'
-    
+
     def has_add_permission(self, request):
         return False  # Payments should only be created through API
 
@@ -44,10 +46,11 @@ class RefundAdmin(admin.ModelAdmin):
         'requested_by', 'reviewed_by', 'created_at'
     ]
     list_filter = ['status', 'reason', 'created_at']
-    search_fields = ['payment__id', 'payment__user__username', 'reason_description']
+    search_fields = ['payment__id',
+                     'payment__user__username', 'reason_description']
     readonly_fields = ['id', 'created_at', 'updated_at']
     raw_id_fields = ['payment', 'requested_by', 'reviewed_by']
-    
+
     fieldsets = (
         ('Refund Details', {
             'fields': ('id', 'payment', 'amount', 'reason', 'reason_description')
@@ -62,7 +65,7 @@ class RefundAdmin(admin.ModelAdmin):
             'fields': ('provider_reference',)
         }),
     )
-    
+
     def payment_id(self, obj):
         return format_html(
             '<a href="/admin/payments/payment/{}/change/">{}</a>',
@@ -81,12 +84,12 @@ class ReferralRewardAdmin(admin.ModelAdmin):
     search_fields = ['user__username', 'payment__id']
     readonly_fields = ['id', 'created_at']
     raw_id_fields = ['user', 'payment']
-    
+
     actions = ['mark_as_paid']
-    
+
     def mark_as_paid(self, request, queryset):
         from django.utils import timezone
-        
+
         count = queryset.filter(is_paid=False).update(
             is_paid=True,
             paid_at=timezone.now()
@@ -96,7 +99,7 @@ class ReferralRewardAdmin(admin.ModelAdmin):
             f'{count} rewards marked as paid.'
         )
     mark_as_paid.short_description = 'Mark selected rewards as paid'
-    
+
     def payment_id(self, obj):
         return format_html(
             '<a href="/admin/payments/payment/{}/change/">{}</a>',

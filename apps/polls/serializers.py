@@ -32,17 +32,18 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class PollListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
-    question_count = serializers.IntegerField(source='questions.count', read_only=True)
+    question_count = serializers.IntegerField(
+        source='questions.count', read_only=True)
     vote_count = serializers.SerializerMethodField()
     creator_username = serializers.ReadOnlyField(source='creator.username')
     category_name = serializers.ReadOnlyField(source='category.name')
-    
+
     class Meta:
         model = Poll
-        fields = ['id', 'title', 'description', 'creator_username', 
-                 'is_active', 'expires_at', 'is_public', 'created_at',
-                 'question_count', 'vote_count', 'category_name']
-    
+        fields = ['id', 'title', 'description', 'creator_username',
+                  'is_active', 'expires_at', 'is_public', 'created_at',
+                  'question_count', 'vote_count', 'category_name']
+
     def get_vote_count(self, obj):
         return Choice.objects.filter(question__poll=obj).aggregate(
             total_votes=Sum('vote_count'))['total_votes'] or 0
@@ -54,13 +55,14 @@ class PollDetailSerializer(serializers.ModelSerializer):
     creator = UserSerializer(read_only=True)
     is_bookmarked = serializers.SerializerMethodField()
     category_name = serializers.ReadOnlyField(source='category.name')
-    
+
     class Meta:
         model = Poll
         fields = ['id', 'title', 'description', 'creator', 'is_active',
-                 'expires_at', 'is_public', 'created_at', 'questions',
-                 'allows_revote', 'category', 'category_name', 'is_bookmarked']
-    
+                  'expires_at', 'is_public', 'created_at', 'questions',
+                  'allows_revote', 'category', 'category_name', 'is_bookmarked',
+                  'is_paid', 'vote_price']
+
     def get_is_bookmarked(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
@@ -86,6 +88,8 @@ class PollSerializer(serializers.ModelSerializer):
             'allows_revote',
             'created_at',
             'questions',
+            'is_paid',
+            'vote_price',
         ]
 
     def create(self, validated_data):
