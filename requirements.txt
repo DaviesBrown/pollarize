@@ -9,6 +9,9 @@ djangorestframework==3.15.2
 # JWT Auth
 djangorestframework-simplejwt==5.3.1
 
+# Filtering and Search
+django-filter==24.2
+
 # API Docs
 drf-yasg==1.21.7
 
@@ -28,4 +31,5 @@ python-dotenv==1.0.1
 
 # Testing
 pytest==8.3.2
+pytest-django==4.8.0
 pytest-django==4.9.0

@@ -16,7 +16,8 @@ class Phase1SmokeTests(APITestCase):
         # Register
         r = self.client.post(
             reverse('register'),
-            {'username': self.username, 'email': self.email, 'password': self.password},
+            {'username': self.username, 'email': self.email,
+                'password': self.password},
             format='json',
         )
         self.assertEqual(r.status_code, 201, r.content)
@@ -28,7 +29,8 @@ class Phase1SmokeTests(APITestCase):
             format='json',
         )
         self.assertEqual(r.status_code, 200, r.content)
-        access = r.json()['data']['access'] if 'data' in r.json() else r.json()['access']
+        access = r.json()['data']['access'] if 'data' in r.json() else r.json()[
+            'access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
 
         # Profile
@@ -44,7 +46,8 @@ class Phase1SmokeTests(APITestCase):
             format='json',
         )
         self.assertEqual(r.status_code, 200)
-        access = r.json()['data']['access'] if 'data' in r.json() else r.json()['access']
+        access = r.json()['data']['access'] if 'data' in r.json() else r.json()[
+            'access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
 
         # Create poll with nested question/choices
@@ -67,7 +70,8 @@ class Phase1SmokeTests(APITestCase):
         }
         r = self.client.post('/api/v1/polls/', payload, format='json')
         self.assertEqual(r.status_code, 201, r.content)
-        poll_id = r.json()['data']['id'] if 'data' in r.json() else r.json()['id']
+        poll_id = r.json()['data']['id'] if 'data' in r.json() else r.json()[
+            'id']
 
         # Get poll detail anonymously (cached)
         self.client.credentials()  # remove auth
@@ -75,17 +79,21 @@ class Phase1SmokeTests(APITestCase):
         self.assertEqual(r.status_code, 200)
 
         # Vote anonymously
-        choice_id = r.json()['data']['questions'][0]['choices'][0]['id'] if 'data' in r.json() else r.json()['questions'][0]['choices'][0]['id']
-        r = self.client.post('/api/v1/votes/', {'choice': choice_id}, format='json')
+        choice_id = r.json()['data']['questions'][0]['choices'][0]['id'] if 'data' in r.json(
+        ) else r.json()['questions'][0]['choices'][0]['id']
+        r = self.client.post(
+            '/api/v1/votes/', {'choice': choice_id}, format='json')
         self.assertEqual(r.status_code, 201, r.content)
 
         # Double vote should fail
-        r = self.client.post('/api/v1/votes/', {'choice': choice_id}, format='json')
+        r = self.client.post(
+            '/api/v1/votes/', {'choice': choice_id}, format='json')
         self.assertEqual(r.status_code, 400)
 
     def test_logout_revokes_token(self):
         u = User.objects.create_user(username='eve', password='passw0rd!')
-        r = self.client.post(reverse('token_obtain_pair'), {'username': 'eve', 'password': 'passw0rd!'}, format='json')
+        r = self.client.post(reverse('token_obtain_pair'), {
+                             'username': 'eve', 'password': 'passw0rd!'}, format='json')
         self.assertEqual(r.status_code, 200)
         access = r.json().get('data', r.json()).get('access')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
