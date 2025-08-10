@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.text import slugify
@@ -13,6 +14,12 @@ class User(AbstractUser):
     subscription_tier = models.CharField(
         max_length=20, choices=SUBSCRIPTION_TIERS, default='free')
     is_premium = models.BooleanField(default=False)
+    referral_code = models.CharField(max_length=10, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            self.referral_code = uuid.uuid4().hex[:8].upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
