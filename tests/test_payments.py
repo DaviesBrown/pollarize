@@ -178,13 +178,13 @@ class PaystackClientTestCase(TestCase):
         """Test webhook signature verification with valid signature"""
         # Mock the settings attribute access
         mock_settings.PAYSTACK_SECRET_KEY = 'test_secret_key'
-        
+
         # Re-initialize client to use mocked settings
         client = PaystackClient()
         client.secret_key = 'test_secret_key'
-        
+
         request_body = b'{"event": "charge.success", "data": {}}'
-        
+
         # Compute the actual signature using the same method as PaystackClient
         import hmac
         import hashlib
@@ -194,9 +194,10 @@ class PaystackClientTestCase(TestCase):
             msg=request_body,
             digestmod=hashlib.sha512
         ).hexdigest()
-        
+
         # Test with the correct signature
-        result = client.verify_webhook_signature(request_body, computed_signature)
+        result = client.verify_webhook_signature(
+            request_body, computed_signature)
         self.assertTrue(result)
 
     @patch('django.conf.settings')
@@ -204,15 +205,16 @@ class PaystackClientTestCase(TestCase):
         """Test webhook signature verification with invalid signature"""
         # Mock the settings attribute access
         mock_settings.PAYSTACK_SECRET_KEY = 'test_secret_key'
-        
+
         # Re-initialize client to use mocked settings
         client = PaystackClient()
         client.secret_key = 'test_secret_key'
-        
+
         request_body = b'{"event": "charge.success", "data": {}}'
         invalid_signature = 'invalid_signature'
-        
-        result = client.verify_webhook_signature(request_body, invalid_signature)
+
+        result = client.verify_webhook_signature(
+            request_body, invalid_signature)
         self.assertFalse(result)
 
 
