@@ -29,3 +29,33 @@ Deliver a lean polling system with core functionality to validate product-market
 - Create basic CI workflow to run tests.
 
 ---
+
+## Sprint Backlog (10x Developer Detail)
+
+1. Project Setup
+   - Create Python virtual environment and install dependencies (`Django`, `djangorestframework`, `djangorestframework-simplejwt`, `django-redis`).
+   - Initialize Git repository and configure pre-commit hooks (flake8, black).
+   - Scaffold Django project (`config/`, `manage.py`) and create `core` and `polls` apps.
+   - Configure base settings: database (MySQL/SQLite fallback), Redis cache, installed apps.
+
+2. Database Modeling
+   - Define `User` model extending `AbstractUser` with `subscription_tier`, `is_premium`, `referral_code`.
+   - In `polls/models.py`, define `Poll`, `Question`, `Choice`, and `VoteSession` models with fields, relationships, and indexes for performance.
+   - Add database constraints: unique vote per `(poll, ip_address)`.
+   - Generate and apply initial migrations.
+
+3. API Layer
+   - Implement DRF serializers for all models.
+   - Build viewsets and routers for `User` (registration, login), `Poll`, `Question`, `Choice`, and `VoteSession`.
+   - Integrate JWT authentication endpoints (register, login, token refresh).
+   - Add IP tracking middleware or override `perform_create` to store IP in `VoteSession`.
+
+4. Testing & CI
+   - Write pytest-based unit tests for models: field validation and unique vote logic.
+   - Write API tests using DRF test client to cover authentication and vote endpoint.
+   - Set up GitHub Actions workflow: run lint, tests, and coverage badge enforcement.
+
+5. Documentation & Swagger
+   - Configure `drf-yasg` for OpenAPI schema generation.
+   - Add initial Swagger UI endpoint and generate stub docs.
+   - Document environment variables and setup steps in `README.md`.
