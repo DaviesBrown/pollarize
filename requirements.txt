@@ -1,0 +1,35 @@
+Django==5.0.7
+psycopg[binary]==3.2.1
+pytz==2024.1
+sqlparse==0.5.1
+
+# REST Framework
+djangorestframework==3.15.2
+
+# JWT Auth
+djangorestframework-simplejwt==5.3.1
+
+# Filtering and Search
+django-filter==24.2
+
+# API Docs
+drf-yasg==1.21.7
+
+# CORS
+django-cors-headers==4.4.0
+
+# Redis (caching / future rate limiting)
+redis==5.0.8
+django-redis==5.4.0
+
+# Dev
+black==24.8.0
+isort==5.13.2
+
+# Env variables
+python-dotenv==1.0.1
+
+# Testing
+pytest==8.3.2
+pytest-django==4.8.0
+pytest-django==4.9.0

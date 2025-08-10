@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+venv/
+
+# Django
+staticfiles/
+media/
+
+# SQLite
+db.sqlite3
+
+# VSCode
+.vscode/
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+
+# Distribution / packaging
+dist/
+build/
+*.whl
+*.manifest
+*.spec
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.log
+*.swp
+*.DS_Store
+*.idea/
+*.vscode/
+*.pytest_cache/
+*.coverage
+.coverage.*
+*.mypy_cache/
+*.pytype/
