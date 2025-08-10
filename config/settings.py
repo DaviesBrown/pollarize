@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     # Local apps
     'apps.core',
     'apps.polls',
+    'apps.payments',
 ]
 
 MIDDLEWARE = [
