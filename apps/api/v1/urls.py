@@ -9,9 +9,16 @@ from apps.core.views import (
     LogoutView,
 )
 from apps.polls.views import PollViewSet, VoteView
+from apps.payments.views import (
+    PaymentViewSet, RefundViewSet, ReferralRewardViewSet,
+    PaystackWebhookView
+)
 
 router = DefaultRouter()
 router.register(r'polls', PollViewSet)
+router.register(r'payments', PaymentViewSet, basename='payment')
+router.register(r'refunds', RefundViewSet, basename='refund')
+router.register(r'rewards', ReferralRewardViewSet, basename='reward')
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
@@ -22,6 +29,9 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='logout'),
 
     path('users/me/', UserProfileView.as_view(), name='user-profile'),
+    
+    # Payment webhook
+    path('webhook/paystack/', PaystackWebhookView.as_view(), name='paystack-webhook'),
 
     path('', include(router.urls)),
     path('votes/', VoteView.as_view(), name='vote-create'),
