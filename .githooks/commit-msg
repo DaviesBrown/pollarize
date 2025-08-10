@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Commit-msg hook: enforce Conventional Commits format
+
+MSG_FILE=$1
+MSG=$(head -n1 "$MSG_FILE")
+
+if ! echo "$MSG" | grep -Eq '^(feat|fix|docs|style|refactor|test|chore)(\([a-z]+\))?: .+'; then
+  echo "ERROR: Commit message does not follow Conventional Commits format." >&2
+  echo "Expected: <type>(<scope>): <description>" >&2
+  exit 1
+fi
+exit 0
