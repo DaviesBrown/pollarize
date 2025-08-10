@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+from .models import Category, UserProfile
+
 User = get_user_model()
 
 
@@ -9,7 +11,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'subscription_tier', 'is_premium')
+        fields = ('id', 'username', 'email', 'password',
+                  'subscription_tier', 'is_premium')
         read_only_fields = ('subscription_tier', 'is_premium')
 
     def create(self, validated_data):
@@ -18,6 +21,23 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'description']
+        read_only_fields = ['slug']
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'user', 'bio', 'avatar', 'location', 'social_links',
+                  'total_referrals', 'referral_earnings']
+        read_only_fields = ['total_referrals', 'referral_earnings']
 
 
 class TokenObtainPairResponseSerializer(serializers.Serializer):

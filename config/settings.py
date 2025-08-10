@@ -22,12 +22,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
+    'django_filters',
     'drf_yasg',
     'corsheaders',
 
     # Local apps
     'apps.core',
     'apps.polls',
+    'apps.payments',
 ]
 
 MIDDLEWARE = [
@@ -144,4 +146,28 @@ else:
             'LOCATION': 'unique-snowflake',
             'KEY_PREFIX': 'pollarize',
         }
+    }
+
+# Payment settings
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
+
+# Logging configuration
+if DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'loggers': {
+            'apps.payments': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': True,
+            },
+        },
     }
