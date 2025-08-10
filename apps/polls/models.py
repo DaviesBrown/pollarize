@@ -110,6 +110,7 @@ class Bookmark(models.Model):
 
     class Meta:
         unique_together = ('user', 'poll')
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['user', 'created_at']),
         ]

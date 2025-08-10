@@ -1,11 +1,18 @@
+import uuid
 from django.db.models import F
 from django.core.cache import cache
-from rest_framework import generics, permissions, viewsets
+from django.utils import timezone
+from rest_framework import generics, permissions, viewsets, status
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.response import Response
+from rest_framework.filters import SearchFilter, OrderingFilter
 
-from .models import Choice, Poll, VoteSession
+from .models import Choice, Poll, VoteSession, Bookmark, PollShare
 from .permissions import IsCreatorOrReadOnly
-from .serializers import PollSerializer, VoteSerializer
+from .serializers import (
+    PollSerializer, PollListSerializer, PollDetailSerializer,
+    VoteSerializer, BookmarkSerializer, PollShareSerializer
+)
 
 CACHE_TTL = 600  # 10 minutes
 
@@ -18,14 +25,24 @@ def invalidate_poll_cache(poll_id: int | None = None):
 
 class PollViewSet(viewsets.ModelViewSet):
     queryset = Poll.objects.all()
-    serializer_class = PollSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly, IsCreatorOrReadOnly]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['title', 'description', 'category__name']
+    ordering_fields = ['created_at', 'expires_at']
+    ordering = ['-created_at']
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PollListSerializer
+        elif self.action == 'retrieve':
+            return PollDetailSerializer
+        return PollSerializer
 
     def get_queryset(self):
         queryset = (
             Poll.objects.all()
-            .select_related('creator')
+            .select_related('creator', 'category')
             .prefetch_related('questions__choices')
         )
         if not self.request.user.is_authenticated:
@@ -91,3 +108,47 @@ class VoteView(generics.CreateAPIView):
             vote_count=F('vote_count') + 1)
         invalidate_poll_cache(poll.id)
         return vote
+
+
+class BookmarkViewSet(viewsets.ModelViewSet):
+    serializer_class = BookmarkSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Bookmark.objects.filter(user=self.request.user).select_related('poll')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class PollShareView(generics.CreateAPIView):
+    serializer_class = PollShareSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(
+            user=self.request.user,
+            shared_at=timezone.now()
+        )
+
+
+class TrackShareClickView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        referral_code = self.kwargs.get('referral_code')
+        try:
+            share = PollShare.objects.get(referral_code=referral_code)
+            share.clicks += 1
+            share.save(update_fields=['clicks'])
+            # Return the poll information for redirect
+            return Response({
+                'poll_id': share.poll_id,
+                'poll_title': share.poll.title,
+                'success': True
+            })
+        except PollShare.DoesNotExist:
+            return Response({
+                'error': 'Invalid referral code',
+                'success': False
+            }, status=status.HTTP_404_NOT_FOUND)
