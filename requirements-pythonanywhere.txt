@@ -1,0 +1,52 @@
+# Core Django
+Django==5.0.7
+pytz==2024.1
+sqlparse==0.5.1
+python-dotenv==1.0.1  # For environment variable loading
+
+# REST Framework
+djangorestframework==3.15.2
+
+# JWT Auth
+djangorestframework-simplejwt==5.3.1
+
+# Filtering and Search
+django-filter==24.2
+
+# API Docs
+drf-yasg==1.21.7
+
+# CORS
+django-cors-headers==4.4.0
+
+# HTTP requests for geolocation services
+requests==2.32.3
+
+# Excel export support for analytics
+openpyxl==3.1.5
+
+# Production server (included in PythonAnywhere)
+# gunicorn==21.2.0
+whitenoise==6.6.0  # For serving static files
+
+# Database drivers (SQLite is built-in, MySQL available on paid plans)
+# mysqlclient==2.2.4  # Uncomment for MySQL on paid plans
+
+# Redis and Celery (Not available on free plan - commented out)
+# redis==5.0.8
+# django-redis==5.4.0
+# celery==5.3.4
+# django-celery-beat==2.6.0
+# django-celery-results==2.6.0
+
+# Optional PostgreSQL support (not needed for PythonAnywhere)
+# psycopg[binary]==3.2.1
+
+# Timezone utilities (already included above, removing duplicate)
+
+# JSON field improvements (may not be needed for Django 5.0+)
+# django-jsonfield==1.4.1
+
+# IP address utilities for compliance
+ipaddress==1.0.23
+ipaddress==1.0.23
