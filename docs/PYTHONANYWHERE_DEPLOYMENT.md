@@ -85,6 +85,10 @@ path = '/home/yourusername/pollarize'
 if path not in sys.path:
     sys.path.insert(0, path)
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv(os.path.join(path, '.env'))
+
 # Set environment variable for Django settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
 
@@ -114,6 +118,23 @@ os.environ.setdefault('DJANGO_ALLOWED_HOSTS', 'yourusername.pythonanywhere.com')
 2. Visit `http://yourusername.pythonanywhere.com`
 3. Test API endpoints: `http://yourusername.pythonanywhere.com/api/v1/`
 4. Check Swagger docs: `http://yourusername.pythonanywhere.com/swagger/`
+
+### 8. Verify Deployment (Important!)
+
+Run the verification command to ensure everything is configured correctly:
+
+```bash
+python3.10 manage.py verify_deployment
+```
+
+This will check:
+- ✅ Database connectivity
+- ✅ Static files collection
+- ✅ API keys configuration
+- ✅ Celery settings for free plan
+- ✅ All required apps installed
+
+**Fix any issues** shown in the verification before proceeding.
 
 ## API Endpoints Available
 
@@ -147,10 +168,26 @@ For production use, consider upgrading to a paid plan for:
 
 ### Common Issues
 
-1. **ImportError**: Check Python path in WSGI file
-2. **Static files not loading**: Verify static files configuration
-3. **Database errors**: Run migrations again
-4. **Environment variables**: Check `.env` file or WSGI configuration
+1. **ImportError: No module named 'dotenv'**: 
+   ```bash
+   pip3.10 install --user python-dotenv
+   ```
+
+2. **ImportError**: Check Python path in WSGI file
+3. **Static files not loading**: Verify static files configuration
+4. **Database errors**: Run migrations again
+5. **Environment variables not loading**: Check `.env` file path and WSGI configuration
+
+### Critical: Environment Variables Loading
+
+**Most Important**: Make sure your WSGI file includes the dotenv import and loading:
+
+```python
+from dotenv import load_dotenv
+load_dotenv(os.path.join(path, '.env'))
+```
+
+Without this, your environment variables won't be loaded and the app will fail!
 
 ### Logs
 
