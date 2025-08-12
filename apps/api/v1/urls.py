@@ -18,6 +18,14 @@ from apps.payments.views import (
     PaymentViewSet, RefundViewSet, ReferralRewardViewSet,
     PaystackWebhookView
 )
+from apps.analytics.views import (
+    PollAnalyticsViewSet, UserAnalyticsViewSet, AnalyticsEventViewSet,
+    AnalyticsSnapshotViewSet, AnalyticsDashboardView, ExportAnalyticsView
+)
+from apps.compliance.views import (
+    ComplianceLogViewSet, GeolocationCacheViewSet,
+    ComplianceRuleViewSet, ComplianceCheckView
+)
 
 router = DefaultRouter()
 router.register(r'polls', PollViewSet)
@@ -28,6 +36,24 @@ router.register(r'rewards', ReferralRewardViewSet, basename='reward')
 router.register(r'categories', CategoryViewSet)
 router.register(r'profiles', UserProfileViewSet)
 router.register(r'bookmarks', BookmarkViewSet, basename='bookmark')
+
+# Analytics endpoints
+router.register(r'analytics/polls', PollAnalyticsViewSet,
+                basename='poll-analytics')
+router.register(r'analytics/users', UserAnalyticsViewSet,
+                basename='user-analytics')
+router.register(r'analytics/events', AnalyticsEventViewSet,
+                basename='analytics-events')
+router.register(r'analytics/snapshots', AnalyticsSnapshotViewSet,
+                basename='analytics-snapshots')
+
+# Compliance endpoints
+router.register(r'compliance/logs', ComplianceLogViewSet,
+                basename='compliance-logs')
+router.register(r'compliance/geolocation',
+                GeolocationCacheViewSet, basename='geolocation-cache')
+router.register(r'compliance/rules', ComplianceRuleViewSet,
+                basename='compliance-rules')
 
 
 urlpatterns = [
@@ -47,6 +73,16 @@ urlpatterns = [
     path('shares/', PollShareView.as_view(), name='poll-share'),
     path('shares/<str:referral_code>/track/',
          TrackShareClickView.as_view(), name='track-share'),
+
+    # Analytics endpoints
+    path('analytics/dashboard/', AnalyticsDashboardView.as_view(),
+         name='analytics-dashboard'),
+    path('analytics/export/', ExportAnalyticsView.as_view(),
+         name='analytics-export'),
+
+    # Compliance endpoints
+    path('compliance/check/', ComplianceCheckView.as_view(),
+         name='compliance-check'),
 
     path('', include(router.urls)),
     path('votes/', VoteView.as_view(), name='vote-create'),
