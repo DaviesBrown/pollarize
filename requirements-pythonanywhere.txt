@@ -49,4 +49,3 @@ whitenoise==6.6.0  # For serving static files
 
 # IP address utilities for compliance
 ipaddress==1.0.23
-ipaddress==1.0.23
