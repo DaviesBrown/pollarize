@@ -30,14 +30,19 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.polls',
     'apps.payments',
+    'apps.compliance',
+    'apps.analytics',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # For static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'apps.core.middleware.ResponseEnvelopeMiddleware',
+    'apps.compliance.middleware.GeoRestrictionMiddleware',
+    'apps.compliance.middleware.ComplianceLoggingMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -69,10 +74,15 @@ DATABASES = {
     'default': {
         'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
         'NAME': os.environ.get('DB_NAME', BASE_DIR / 'db.sqlite3'),
+        # MySQL settings for production
         'USER': os.environ.get('DB_USER', ''),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', ''),
-        'PORT': os.environ.get('DB_PORT', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        } if os.environ.get('DB_ENGINE') == 'django.db.backends.mysql' else {},
     }
 }
 
@@ -89,9 +99,14 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.environ.get('STATIC_ROOT', BASE_DIR / 'staticfiles')
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# WhiteNoise configuration for static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -137,20 +152,126 @@ if USE_REDIS:
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             },
             'KEY_PREFIX': 'pollarize',
+            'TIMEOUT': 300,  # 5 minutes default
         }
     }
 else:
+    # Fallback to database cache for PythonAnywhere free tier
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'cache_table',
             'KEY_PREFIX': 'pollarize',
+            'TIMEOUT': 300,
         }
     }
+
+# Session configuration for PythonAnywhere
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'default'
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = False
+
+# File uploads configuration
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 
 # Payment settings
 PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
+
+# Email configuration
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', '1') == '1'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# Analytics and Compliance settings
+GEOLOCATION_PROVIDERS = [
+    {
+        'name': 'ipapi.co',
+        'url': 'https://ipapi.co/{ip}/json/',
+        'timeout': 3,
+        'rate_limit': 1000,  # requests per day
+    },
+    {
+        'name': 'ip-api.com',
+        'url': 'http://ip-api.com/json/{ip}',
+        'timeout': 3,
+        'rate_limit': 45,  # requests per minute
+    }
+]
+
+# Analytics settings
+ANALYTICS_RETENTION_DAYS = int(
+    os.environ.get('ANALYTICS_RETENTION_DAYS', '365'))
+ANALYTICS_BATCH_SIZE = int(os.environ.get('ANALYTICS_BATCH_SIZE', '1000'))
+
+# Compliance settings
+COMPLIANCE_LOG_RETENTION_DAYS = int(
+    os.environ.get('COMPLIANCE_LOG_RETENTION_DAYS', '180'))
+ENABLE_GEO_RESTRICTIONS = os.environ.get('ENABLE_GEO_RESTRICTIONS', '1') == '1'
+
+# Celery Configuration (optional for background tasks)
+CELERY_BROKER_URL = os.environ.get(
+    'CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get(
+    'CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# For PythonAnywhere free plan - run tasks synchronously
+CELERY_TASK_ALWAYS_EAGER = os.environ.get('CELERY_ALWAYS_EAGER', '0') == '1'
+CELERY_TASK_EAGER_PROPAGATES = CELERY_TASK_ALWAYS_EAGER
+
+# Celery Beat Schedule (for periodic tasks)
+CELERY_BEAT_SCHEDULE = {
+    'update-analytics-hourly': {
+        'task': 'apps.analytics.tasks.aggregate_hourly_analytics',
+        'schedule': 3600.0,  # Every hour
+    },
+    'cleanup-old-events-daily': {
+        'task': 'apps.analytics.tasks.cleanup_old_analytics_events',
+        'schedule': 86400.0,  # Every day
+    },
+    'cleanup-compliance-logs-weekly': {
+        'task': 'apps.compliance.tasks.cleanup_old_compliance_logs',
+        'schedule': 604800.0,  # Every week
+    },
+    'cleanup-geo-cache-daily': {
+        'task': 'apps.compliance.tasks.cleanup_expired_geolocation_cache',
+        'schedule': 86400.0,  # Every day
+    },
+}
+
+# PythonAnywhere specific settings
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.pythonanywhere.com',
+    '.herokuapp.com',
+    os.environ.get('DJANGO_ALLOWED_HOST', ''),
+]
+
+# Remove empty hosts
+ALLOWED_HOSTS = [host for host in ALLOWED_HOSTS if host]
+
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Logging configuration
 if DEBUG:

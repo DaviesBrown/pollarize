@@ -25,6 +25,7 @@ db.sqlite3
 *.so
 *.egg
 *.egg-info/
+venv/
 
 # Distribution / packaging
 dist/
